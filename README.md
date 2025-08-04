@@ -9,26 +9,26 @@ This project demonstrates how MongoDB is used to design and query a student lear
 
 ### 🗃️ Collections
 
-1. Students
-Stores student details including name, email, and assigned mentor.
+1. **students**  
+Stores student information including name, email, and their assigned mentor.
 
-2. Problems
-Tracks the number of problems solved by each student on the CodeKata platform.
+2. **mentors**  
+Contains mentor details including name, email, and number of mentees assigned.
 
-3. AttendanceLogs
-Records daily attendance for each student with date and status (present/absent).
+3. **codekata_progress**  
+Tracks the number of coding problems each student has solved.
 
-4. Lessons
-Represents the academic topics covered during sessions and the corresponding dates.
+4. **attendance_logs**  
+Logs whether students were present or absent on specific dates.
 
-5. Assignments
-Contains task-related details linked to lessons, submission status, and student IDs.
+5. **topic_sessions**  
+Holds data about each class session including topic title and date.
 
-6. Placements
-Captures information on company drives, dates, and student participants.
+6. **task_submissions**  
+Records assignment details for each student including whether tasks were submitted.
 
-7. Mentors
-Holds mentor data including their email, name, and number of mentees assigned.
+7. **drive_events**  
+Stores placement drive details such as company name, date, and list of participating students.
 
 ---
 

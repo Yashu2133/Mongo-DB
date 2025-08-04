@@ -137,113 +137,114 @@ db.drive_events.insertMany([
 
 //  1. Find all the topics and tasks which are taught in the month of October
 
-db.lesson_topics.aggregate([
+db.topic_sessions.aggregate([
   {
     $match: {
-      date: {
-        $gte: '2020-10-01',
-        $lte: '2020-10-31'
-      }
+      date: { $gte: "2020-10-01",
+              $lte: "2020-10-31" }
     }
   },
   {
     $lookup: {
-      from: 'lesson_tasks',
-      localField: 'topic_id',
-      foreignField: 'topic_id',
-      as: 'tasks_covered'
+      from: "task_submissions",
+      localField: "_id",
+      foreignField: "topic_id",
+      as: "related_tasks"
     }
   }
 ]);
 
+
 //  2. Find all the company drives which appeared between 15-Oct-2020 and 31-Oct-2020
 
-db.recruitment_events.find({
-  event_date: {
-    $gte: '2020-10-15',
-    $lte: '2020-10-31'
-  }
+db.drive_events.find({
+  date: { $gte: "2020-10-15", 
+          $lte: "2020-10-31" }
 });
+
 
 //  3. Find all the company drives and students who appeared for the placement
 
-db.recruitment_events.aggregate([
+db.drive_events.aggregate([
   {
     $lookup: {
-      from: 'participants',
-      localField: 'applicants',
-      foreignField: '_id',
-      as: 'students_attended'
+      from: "students",
+      localField: "participants",
+      foreignField: "_id",
+      as: "students_attended"
     }
   }
 ]);
 
 //  4. Find the number of problems solved by each user in code challenges
 
-db.challenge_log.aggregate([
+db.codekata_progress.aggregate([
   {
     $lookup: {
-      from: 'participants',
-      localField: 'user_ref',
-      foreignField: '_id',
-      as: 'user_info'
+      from: "students",
+      localField: "user_id",
+      foreignField: "_id",
+      as: "student_info"
     }
   },
   {
     $project: {
       _id: 0,
-      name: { $arrayElemAt: ['$user_info.name', 0] },
-      solved: '$solved_count'
+      student_name: { $arrayElemAt: ["$student_info.name", 0] },
+      problems_solved: 1
     }
   }
 ]);
 
+
 //  5. Find all the mentors who have more than 15 mentees
 
-db.guides.find({ total_mentees: { $gt: 15 } });
+db.mentors.find({ mentees_total: { $gt: 15 }});
+
 
 //  6. Find number of users who are absent and did not submit tasks between 15-Oct-2020 and 31-Oct-2020
 
-db.presence_log.aggregate([
+db.attendance_logs.aggregate([
   {
     $match: {
-      attendance_date: { $gte: '2020-10-15', $lte: '2020-10-31' },
-      status: 'absent'
+      date: { $gte: "2020-10-15", $lte: "2020-10-31" },
+      status: "absent"
     }
   },
   {
     $lookup: {
-      from: 'lesson_tasks',
-      let: { uid: '$user_ref' },
+      from: "task_submissions",
+      let: { uid: "$user_id" },
       pipeline: [
         {
           $match: {
             $expr: {
               $and: [
-                { $eq: ['$user_id', '$$uid'] },
-                { $eq: ['$submitted', false] },
-                { $gte: ['$task_date', '2020-10-15'] },
-                { $lte: ['$task_date', '2020-10-31'] }
+                { $eq: ["$user_id", "$$uid"] },
+                { $eq: ["$submitted", false] },
+                { $gte: ["$task_date", "2020-10-15"] },
+                { $lte: ["$task_date", "2020-10-31"] }
               ]
             }
           }
         }
       ],
-      as: 'not_submitted_tasks'
+      as: "unsubmitted_tasks"
     }
   },
   {
     $match: {
-      not_submitted_tasks: { $ne: [] }
+      unsubmitted_tasks: { $ne: [] }
     }
   },
   {
     $group: {
-      _id: '$user_ref'
+      _id: "$user_id"
     }
   },
   {
-    $count: 'absent_and_not_submitted_users'
+    $count: "absent_and_unsubmitted_users"
   }
 ]);
+
 
